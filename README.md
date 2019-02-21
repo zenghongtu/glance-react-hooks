@@ -6,12 +6,22 @@
 const [state, setState] = useState(initialState);
 ```
 
-1. 多个`useState`时，`React`依赖于每次渲染时钩子的调用顺序都是一样的，从而实现钩子与状态的一一对应关系。
+1. 多个`useState`时，`React`依赖于每次渲染时钩子的调用顺序都是一样的(存在与每个组件关联的“存储单元”的内部列表存放JavaScript对象)，从而实现钩子与状态的一一对应关系。
 2. `setState()`接收新的`state`或者一个返回`state`的函数（`setCount(prevCount => prevCount - 1)}`）。
 3. 不同于类组件中的`setState`，`useState`返回的`setState` 不会自动合并更新对象到旧的`state`中（可以使用`useReducer`）。
 4. `useState`可以接收一个函数返回`initialState`，它只会在初次渲染时被调用。
 5. 当`setState`中的`state`和当前的`state`相等（通过`Object.is`判断），将会退出更新。
+6. 建议将一个状态根据哪些需要值一起变化拆分为多个状态变量。
 
+```
+const [rows, setRows] = useState(createRows(props.count));  // `createRows()`每次将会渲染将会被调用
+```
+
+优化一下：
+```
+const [rows, setRows] = useState(() => createRows(props.count));  // `createRows()`只会被调用一次
+```
+其中的`() => createRows(props.count)`会赋值给`rows`，这样就保证了只有在`rows`调用时，才会创建新的值。
 
 
 ### 作用钩子（Effect Hook）
@@ -138,6 +148,21 @@ const refContainer = useRef(initialValue);
 
 与在类中使用实例字段的方式类似，它**可以保留任何可变值**。
 
+如保存前一个状态：
+```
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  const prevCountRef = useRef();
+  useEffect(() => {
+    prevCountRef.current = count;
+  });
+  const prevCount = prevCountRef.current;
+
+  return <h1>Now: {count}, before: {prevCount}</h1>;
+}
+```
+
 
 #### useImperativeHandle
 
@@ -210,3 +235,68 @@ useEffect(function persistForm() {
 1. 自定钩子是一种复用状态逻辑的机制（例如设置订阅和记住当前值），每次使用，内部所有状态和作用都是独立的。
 1. 自定义钩子每个状态独立的能力源于`useState`和`useEffect`是完全独立的。
 
+
+### 测试钩子（Hook)
+
+```
+function Example() {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    document.title = `You clicked ${count} times`;
+  });
+  return (
+    <div>
+      <p>You clicked {count} times</p>
+      <button onClick={() => setCount(count + 1)}>
+        Click me
+      </button>
+    </div>
+  );
+}
+```
+
+使用[ReactTestUtils.act()](https://reactjs.org/docs/test-utils.html#act)
+
+```
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { act } from 'react-dom/test-utils';
+import Counter from './Counter';
+
+let container;
+
+beforeEach(() => {
+  container = document.createElement('div');
+  document.body.appendChild(container);
+});
+
+afterEach(() => {
+  document.body.removeChild(container);
+  container = null;
+});
+
+it('can render and update a counter', () => {
+  // Test first render and effect
+  act(() => {
+    ReactDOM.render(<Counter />, container);
+  });
+  const button = container.querySelector('button');
+  const label = container.querySelector('p');
+  expect(label.textContent).toBe('You clicked 0 times');
+  expect(document.title).toBe('You clicked 0 times');
+
+  // Test second render and effect
+  act(() => {
+    button.dispatchEvent(new MouseEvent('click', {bubbles: true}));
+  });
+  expect(label.textContent).toBe('You clicked 1 times');
+  expect(document.title).toBe('You clicked 1 times');
+});
+```
+
+建议使用[react-testing-library](https://git.io/react-testing-library)
+
+
+### 参考
+
+- [Hooks](https://reactjs.org/docs/hooks-intro.html)
