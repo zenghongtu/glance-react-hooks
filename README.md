@@ -1,6 +1,10 @@
 # react-hooks
 
-### State Hook
+### 状态钩子（State Hook）
+
+```
+const [state, setState] = useState(initialState);
+```
 
 1. 多个`useState`时，`React`依赖于每次渲染时钩子的调用顺序都是一样的，从而实现钩子与状态的一一对应关系。
 2. `setState()`接收新的`state`或者一个返回`state`的函数（`setCount(prevCount => prevCount - 1)}`）。
@@ -8,7 +12,13 @@
 4. `useState`可以接收一个函数返回`initialState`，它只会在初次渲染时被调用。
 5. 当`setState`中的`state`和当前的`state`相等（通过`Object.is`判断），将会退出更新。
 
-### Effect Hook
+
+
+### 作用钩子（Effect Hook）
+
+```
+useEffect(didUpdate);
+```
 
 1. 相当于生命周期函数`componentDidMount`, `componentDidUpdate`, `componentWillUnmount`的组合。
 2. 可以返回一个函数(`cleanup`)用于清理。
@@ -67,8 +77,114 @@ ChatAPI.unsubscribeFromFriendStatus(300, handleStatusChange); // Clean up last e
 ```
 4. `useEffect(() => {document.title = You clicked ${count} times;}, [count]); ` ，指定第二个参数（这里为[`count`]）变化时才发生`cleanup phase`，然后执行`effect`；
 5. 上面情况，如果`useEffect`第二个参数为为`[]`则表示只运行一次(`componentDidMount`中执行`effect`，`componentWillUnmount`中进行`cleanup`)，永远不重新运行。
-6. 和`componentDidMount`/`componentDidUpdate`有区别的地方在于，`useEffect`中的函数会在`layout`和`paint`结束后才被触发。（可以使用`useLayoutEffect`在下一次绘制之前同步触发）
+6. 和`componentDidMount`/`componentDidUpdate`有区别的地方在于，`useEffect`中的函数会在`layout`和`paint`结束后才被触发。（可以使用`useLayoutEffect`在下一次渲染之前(即 DOM 突变之后)同步触发）
 7. `useEffect`虽然被推迟到浏览器绘制完成之后，但是肯定在有任何新的呈现之前启动。因为`React`总是在开始更新之前刷新之前渲染的效果。
+
+
+### 其他钩子
+
+#### useContext
+
+```
+const context = useContext(Context);
+```
+
+接受一个上下文对象（由`React.createContext`创建），返回当前上下文值（由最近的上下文提供）。
+
+
+### 附加钩子（Additional Hooks）
+
+基本钩子的变体或用于特定边缘情况的钩子。
+
+#### useReducer
+
+```
+const [state, dispatch] = useReducer(reducer, initialArg, init);
+```
+
+1. 第三个参数`init`为函数，将会这样调用：`init(initialArg)`，返回初始值。
+2. 如果返回`state`和现在的`state`一样，将会在不影响子孙或者触发效果的情况下退出渲染。
+
+#### useCallback
+
+```
+const memoizedCallback = useCallback(
+  () => {
+    doSomething(a, b);
+  },
+  [a, b],
+);
+```
+
+传入一个内联回调和一个输入数组，返回一个带有记忆的*函数*，只有输入数组中其中一个值变化才会更改。`useCallback(fn, inputs)` 等价于 `useMemo(() => fn, inputs)`。
+
+#### useMemo
+
+```
+const memoizedValue = useMemo(() => computeExpensiveValue(a, b), [a, b]);
+```
+
+传入一个创建函数和一个输入数组，返回一个带有记忆的*值*，只有输入数组中其中一个值变化才会重新计算。
+
+#### useRef
+
+```
+const refContainer = useRef(initialValue);
+// ...
+<input ref={refContainer} />
+...
+```
+返回一个可变的`ref`对象，可以自动将`ref`对象中的`current`属性作为初始值传递的参数，保持到组件的整个生命周期。
+
+与在类中使用实例字段的方式类似，它**可以保留任何可变值**。
+
+
+#### useImperativeHandle
+
+```
+useImperativeHandle(ref, createHandle, [inputs])
+```
+
+自定在使用 ref 时，公开给父组件的实例值，必须和`forwardRef`一起使用。
+
+```
+function FancyInput(props, ref) {
+  const inputRef = useRef();
+  useImperativeHandle(ref, () => ({
+    focus: () => {
+      inputRef.current.focus();
+    }
+  }));
+  return <input ref={inputRef} ... />;
+}
+FancyInput = forwardRef(FancyInput);
+
+```
+
+```
+<FancyInput ref={fancyInputRef} />
+
+// 调用
+fancyInputRef.current.focus()
+```
+
+#### useLayoutEffect
+
+使用方法和`useLayoutEffect`一致，不过它是在 DOM 读取布局时同步触发（相当于`componentDidMount`和`componentDidUpdate`阶段）。（建议尽可能使用`useEffect`避免阻塞可视化更新）
+
+
+#### useDebugValue
+
+```
+useDebugValue(value)
+```
+
+用于在`React DevTools`中显示自定义钩子的标签，对于自定义钩子中用于共享的部分有更大价值。
+
+自定义显示格式：
+```
+useDebugValue(date, date => date.toDateString());
+```
 
 ### 钩子（Hooks）规则
 
@@ -93,3 +209,4 @@ useEffect(function persistForm() {
 1. 以`use`开头，一种公约。
 1. 自定钩子是一种复用状态逻辑的机制（例如设置订阅和记住当前值），每次使用，内部所有状态和作用都是独立的。
 1. 自定义钩子每个状态独立的能力源于`useState`和`useEffect`是完全独立的。
+

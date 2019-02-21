@@ -1,4 +1,4 @@
-import React, {useState,} from 'react';
+import React, {useState, useDebugValue} from 'react';
 
 const useReducer = (reducer, initState) => {
   const [state, setState] = useState(initState);
@@ -7,6 +7,8 @@ const useReducer = (reducer, initState) => {
     const nextState = reducer(state, action);
     setState(nextState)
   }
+
+  useDebugValue(state.length > 0 ? 'non-empty' : 'empty');
 
   return [state, dispatch];
 };
