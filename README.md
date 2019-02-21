@@ -2,7 +2,7 @@
 
 ### 状态钩子（State Hook）
 
-```
+```js
 const [state, setState] = useState(initialState);
 ```
 
@@ -13,12 +13,13 @@ const [state, setState] = useState(initialState);
 5. 当`setState`中的`state`和当前的`state`相等（通过`Object.is`判断），将会退出更新。
 6. 建议将一个状态根据哪些需要值一起变化拆分为多个状态变量。
 
-```
+```js
 const [rows, setRows] = useState(createRows(props.count));  // `createRows()`每次将会渲染将会被调用
 ```
 
 优化一下：
-```
+
+```js
 const [rows, setRows] = useState(() => createRows(props.count));  // `createRows()`只会被调用一次
 ```
 其中的`() => createRows(props.count)`会赋值给`rows`，这样就保证了只有在`rows`调用时，才会创建新的值。
@@ -26,14 +27,15 @@ const [rows, setRows] = useState(() => createRows(props.count));  // `createRows
 
 ### 作用钩子（Effect Hook）
 
-```
+```js
 useEffect(didUpdate);
 ```
 
 1. 相当于生命周期函数`componentDidMount`, `componentDidUpdate`, `componentWillUnmount`的组合。
 2. 可以返回一个函数(`cleanup`)用于清理。
 3. 每次重新渲染都将会发生`cleanup phase`⏬
-```
+
+```js
 useEffect(() => {
     ChatAPI.subscribeToFriendStatus(props.friend.id, handleStatusChange);
     return () => {
@@ -41,7 +43,8 @@ useEffect(() => {
     };
   });
 ```
-```
+
+```js
   componentDidMount() {
     ChatAPI.subscribeToFriendStatus(
       this.props.friend.id,
@@ -70,7 +73,8 @@ useEffect(() => {
     );
   }
 ```
-```
+
+```js
 // Mount with { friend: { id: 100 } } props
 ChatAPI.subscribeToFriendStatus(100, handleStatusChange);     // Run first effect
 
@@ -85,6 +89,7 @@ ChatAPI.subscribeToFriendStatus(300, handleStatusChange);     // Run next effect
 // Unmount
 ChatAPI.unsubscribeFromFriendStatus(300, handleStatusChange); // Clean up last effect
 ```
+
 4. `useEffect(() => {document.title = You clicked ${count} times;}, [count]); ` ，指定第二个参数（这里为[`count`]）变化时才发生`cleanup phase`，然后执行`effect`；
 5. 上面情况，如果`useEffect`第二个参数为为`[]`则表示只运行一次(`componentDidMount`中执行`effect`，`componentWillUnmount`中进行`cleanup`)，永远不重新运行。
 6. 和`componentDidMount`/`componentDidUpdate`有区别的地方在于，`useEffect`中的函数会在`layout`和`paint`结束后才被触发。（可以使用`useLayoutEffect`在下一次渲染之前(即 DOM 突变之后)同步触发）
@@ -95,7 +100,7 @@ ChatAPI.unsubscribeFromFriendStatus(300, handleStatusChange); // Clean up last e
 
 #### useContext
 
-```
+```js
 const context = useContext(Context);
 ```
 
@@ -108,7 +113,7 @@ const context = useContext(Context);
 
 #### useReducer
 
-```
+```js
 const [state, dispatch] = useReducer(reducer, initialArg, init);
 ```
 
@@ -117,7 +122,7 @@ const [state, dispatch] = useReducer(reducer, initialArg, init);
 
 #### useCallback
 
-```
+```js
 const memoizedCallback = useCallback(
   () => {
     doSomething(a, b);
@@ -130,7 +135,7 @@ const memoizedCallback = useCallback(
 
 #### useMemo
 
-```
+```js
 const memoizedValue = useMemo(() => computeExpensiveValue(a, b), [a, b]);
 ```
 
@@ -138,7 +143,7 @@ const memoizedValue = useMemo(() => computeExpensiveValue(a, b), [a, b]);
 
 #### useRef
 
-```
+```js
 const refContainer = useRef(initialValue);
 // ...
 <input ref={refContainer} />
@@ -149,7 +154,7 @@ const refContainer = useRef(initialValue);
 与在类中使用实例字段的方式类似，它**可以保留任何可变值**。
 
 如保存前一个状态：
-```
+```js
 function Counter() {
   const [count, setCount] = useState(0);
 
@@ -166,13 +171,13 @@ function Counter() {
 
 #### useImperativeHandle
 
-```
+```js
 useImperativeHandle(ref, createHandle, [inputs])
 ```
 
 自定在使用 ref 时，公开给父组件的实例值，必须和`forwardRef`一起使用。
 
-```
+```js
 function FancyInput(props, ref) {
   const inputRef = useRef();
   useImperativeHandle(ref, () => ({
@@ -186,7 +191,7 @@ FancyInput = forwardRef(FancyInput);
 
 ```
 
-```
+```js
 <FancyInput ref={fancyInputRef} />
 
 // 调用
@@ -200,14 +205,14 @@ fancyInputRef.current.focus()
 
 #### useDebugValue
 
-```
+```js
 useDebugValue(value)
 ```
 
 用于在`React DevTools`中显示自定义钩子的标签，对于自定义钩子中用于共享的部分有更大价值。
 
 自定义显示格式：
-```
+```js
 useDebugValue(date, date => date.toDateString());
 ```
 
@@ -216,7 +221,7 @@ useDebugValue(date, date => date.toDateString());
 #### 1. 只能在顶层调用，不能再循环、条件语句和嵌套函数中使用。 （原因：[State Hook](#State Hook) 第1条）
 
 正确做法：
-```
+```js
 useEffect(function persistForm() {
       // 👍 We're not breaking the first rule anymore
       if (name !== '') {
@@ -238,7 +243,7 @@ useEffect(function persistForm() {
 
 ### 测试钩子（Hook)
 
-```
+```js
 function Example() {
   const [count, setCount] = useState(0);
   useEffect(() => {
@@ -257,7 +262,7 @@ function Example() {
 
 使用[ReactTestUtils.act()](https://reactjs.org/docs/test-utils.html#act)
 
-```
+```js
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
