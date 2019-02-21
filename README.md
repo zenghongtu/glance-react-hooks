@@ -1,10 +1,14 @@
 # react-hooks
 
+### State Hook
+
+- 可以同时使用多个`useState`。
+
 ### Effect Hook
 
 - 相当于生命周期函数`componentDidMount`, `componentDidUpdate`, `componentWillUnmount`的组合。
 - 可以返回一个函数(`cleanup`)用于清理。
-- 每次重新渲染都将会发生`cleanup phase`。（原因如下）
+- 每次重新渲染都将会发生`cleanup phase`⏬
 ```
 useEffect(() => {
     ChatAPI.subscribeToFriendStatus(props.friend.id, handleStatusChange);
