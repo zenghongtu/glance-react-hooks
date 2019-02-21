@@ -1,1 +1,41 @@
 # react-hooks
+
+### Effect Hook
+
+- 相当于生命周期函数`componentDidMount`, `componentDidUpdate`, `componentWillUnmount`的组合。
+- 可以返回一个函数(`cleanup`)用于清理。
+- 每次重新渲染都将会发生`cleanup phase`。（原因如下）
+```
+  componentDidMount() {
+    ChatAPI.subscribeToFriendStatus(
+      this.props.friend.id,
+      this.handleStatusChange
+    );
+  }
+
+  componentDidUpdate(prevProps) {
+    // Unsubscribe from the previous friend.id
+    ChatAPI.unsubscribeFromFriendStatus(
+      prevProps.friend.id,
+      this.handleStatusChange
+    );
+    // Subscribe to the next friend.id
+    ChatAPI.subscribeToFriendStatus(
+      this.props.friend.id,
+      this.handleStatusChange
+    );
+  }
+
+  componentWillUnmount() {
+    ChatAPI.unsubscribeFromFriendStatus(
+      this.props.friend.id,
+      this.handleStatusChange
+    );
+  }
+```
+- `useEffect(() => {document.title = You clicked ${count} times;}, [count]); ` ，指定只有当`count`变化才发生`cleanup phase`；如果为`[]`则表示只运行一次，永远不重新运行。
+
+### Hooks 规则
+
+- 只能在顶层调用，不能再循环、条件语句和嵌套函数中使用。
+- 只能在`React`函数组件中被调用。（可以通过自定义钩子函数解决）
